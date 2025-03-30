@@ -17,47 +17,45 @@ ref lastWeapon
 float durability
 float rating
 
-Begin MenuMode
+Begin MenuMode 1004 ; HUDMainMenu
+	if (GetGameRestarted)
+		if (FileExists "config/newDurability.ini")
+			if (GetINIFloat "DEBUG:bEnablePrints", "newDurability.ini")
+				DBMode 1, (GetModIndex "NewDurability.esp")
+			else
+				DBMode 0, (GetModIndex "NewDurability.esp")
+			endif
 
-	set baseWeapon to 0.3
-	set baseArmor to 1.5
+			if (GetINIFloat "EXTRAS:bDisableDurability")
+				SetNumericGameSetting "fDamageToArmorPercentage", 0
+				SetNumericGameSetting "fDamageToWeaponGunMult", 0
+				SetNumericGameSetting "fDamageToEnergyGunMult", 0
+				SetNumericGameSetting "fDamageToMeleeGunMult", 0
+				SetNumericGameSetting "fDamageToWeaponLauncherMul", 0
+			else
+                set x to (GetINIFloat "PARAMS:fWeaponBaseHealth", "newDurability.ini")
+                if (x < 0)
+                    set x to 0.3
+                endif
+                set y to (GetINIFloat "PARAMS:fArmorBaseHealth", "newDurability.ini")
+                if (y < 0)
+                    set y to 1.5
+                endif
 
-	set multWeapon to 200
-	set multArmor to 1
-
-	DBMode 0, (GetModIndex "NewDurability.esp")
-
-	if (FileExists "config/newDurability.ini")
-		if (GetINIFloat "DEBUG:bEnable", "newDurability.ini")
-			DBMode 1, (GetModIndex "NewDurability.esp")
+                set x2 to (GetINIFloat "PARAMS:fWeaponSkillMult", "newDurability.ini")
+                if (x2)
+                    set x2 to (GetINIFloat "PARAMS:fWeaponSkillMult", "newDurability.ini") * 100
+                else
+                    set x2 to 200
+                endif
+                set y2 to (GetINIFloat "PARAMS:fArmorSkillMult", "newDurability.ini")
+                if (y2)
+                    set y2 to (GetINIFloat "PARAMS:fArmorSkillMult", "newDurability.ini")
+                else
+                    set y2 to 1
+                endif
+            endif
 		endif
-
-		if (GetINIFloat "EXTRAS:bDisableDurability")
-			SetNumericGameSetting "fDamageToArmorPercentage", 0
-			SetNumericGameSetting "fDamageToWeaponGunMult", 0
-			SetNumericGameSetting "fDamageToEnergyGunMult", 0
-			SetNumericGameSetting "fDamageToMeleeGunMult", 0
-			SetNumericGameSetting "fDamageToWeaponLauncherMul", 0
-		endif
-
-		set baseWeapon to (GetINIFloat "PARAMS:fWeaponBaseHealth", "newDurability.ini")
-		if (baseWeapon <= 0)
-			set baseWeapon to 0.3
-		endif
-
-		set baseArmor to (GetINIFloat "PARAMS:fArmorBaseHealth", "newDurability.ini")
-		if (baseArmor <= 0)
-			set baseArmor to 1.5
-		endif
-
-		if (GetINIFloat "PARAMS:fWeaponSkillMult", "newDurability.ini")
-			set multWeapon to (GetINIFloat "PARAMS:fWeaponSkillMult", "newDurability.ini") * 100
-		endif
-
-		if (GetINIFloat "PARAMS:fArmorSkillMult", "newDurability.ini")
-			set multArmor to (GetINIFloat "PARAMS:fArmorSkillMult", "newDurability.ini")
-		endif
-
 	endif
 End
 

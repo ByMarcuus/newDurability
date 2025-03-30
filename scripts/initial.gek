@@ -1,0 +1,71 @@
+scn newDurabilityScript
+
+short bDisableDurability
+float fWeaponBaseHealth
+float fWeaponSkillMult
+float fArmorBaseHealth
+float fArmorSkillMult
+
+float temporal
+
+Begin MenuMode 1004 ; HUDMainMenu
+    if (GetGameRestarted == 0)
+        return
+    endif
+
+    set bDisableDurability to 0
+    set fWeaponBaseHealth to 0.3
+    set fWeaponSkillMult to 0.5
+    set fArmorBaseHealth to 1.5
+    set fArmorSkillMult to 0.5
+
+    if (FileExists "config/newDurability.ini" == 0)
+        DebugPrint "newDurability.ini not found. Please check the installation." ; FIXME: Show a message instead
+        return
+    endif
+
+    if (GetINIFloat "DEBUG:bEnablePrints", "newDurability.ini")
+        DBMode 1, (GetModIndex "NewDurability.esp")
+    else
+        DBMode 0, (GetModIndex "NewDurability.esp")
+    endif
+
+    if (GetINIFloat "EXTRAS:bDisableDurability")
+        set bDisableDurability to 1
+        SetNumericGameSetting "fDamageToArmorPercentage", 0
+        SetNumericGameSetting "fDamageToWeaponGunMult", 0
+        SetNumericGameSetting "fDamageToEnergyGunMult", 0
+        SetNumericGameSetting "fDamageToMeleeGunMult", 0
+        SetNumericGameSetting "fDamageToWeaponLauncherMul", 0
+        DebugPrint "Durability system disabled."
+    else
+        set temporal to (GetINIFloat "PARAMS:fWeaponBaseHealth", "newDurability.ini")
+        if (temporal >= 0 && temporal <= 3)
+            set fWeaponBaseHealth to temporal
+        else
+            DebugPrint "Invalid value for 'fWeaponBaseHealth' in newDurability.ini. Using default value of 0.3."
+        endif
+
+        set temporal to (GetINIFloat "PARAMS:fArmorBaseHealth", "newDurability.ini")
+        if (temporal >= 0)
+            set fArmorBaseHealth to temporal
+        else
+            DebugPrint "Invalid value for 'fArmorBaseHealth' in newDurability.ini. Using default value of 1.5."
+        endif
+
+        set temporal to (GetINIFloat "PARAMS:fWeaponSkillMult", "newDurability.ini")
+        if (temporal >= 0 && temporal <= 3)
+            set fWeaponSkillMult to temporal
+        else
+            DebugPrint "Invalid value for 'fWeaponSkillMult' in newDurability.ini. Using default value of 200."
+        endif
+
+        set temporal to (GetINIFloat "PARAMS:fArmorSkillMult", "newDurability.ini")
+        if (temporal >= 0)
+            set fArmorSkillMult to temporal
+        else
+            DebugPrint "Invalid value for 'fArmorSkillMult' in newDurability.ini. Using default value of 1."
+        endif
+    endif
+    StopQuest newDurabilityInitial
+End
