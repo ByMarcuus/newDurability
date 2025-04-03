@@ -1,0 +1,92 @@
+scn newDurabilityScript
+
+ref weapon
+
+float getter
+float flag
+
+short bDisableDurability
+
+
+; Initialization script that runs on HUDMainMenu.
+; Loads some configurations once.
+; Modified Date: 02/04/2025
+Begin MenuMode 1004
+    if (GetGameRestarted != 0)
+        if (FileExists "config/newDurability.ini" != 0)
+            if (GetINIFloat "DEBUG:bEnablePrints", "newDurability.ini")
+                DBMode 1, (GetModIndex "NewDurability.esp")
+            else
+                DBMode 0, (GetModIndex "NewDurability.esp")
+            endif
+
+            if (GetINIFloat "EXTRAS:bDisableDurability")
+                set bDisableDurability to 1
+                SetNumericGameSetting "fDamageToArmorPercentage", 0
+                SetNumericGameSetting "fDamageToWeaponGunMult", 0
+                SetNumericGameSetting "fDamageToEnergyGunMult", 0
+                SetNumericGameSetting "fDamageToMeleeGunMult", 0
+                SetNumericGameSetting "fDamageToWeaponLauncherMul", 0
+            else
+                set getter to (GetINIFloat "PARAMS:fWeaponBaseHealth", "newDurability.ini")
+                if (getter >= 0)
+                    if (getter <= 3)
+                        SetGlobalVariable fWeaponBaseHealth getter
+                    endif
+                endif
+
+                set getter to (GetINIFloat "PARAMS:fArmorBaseHealth", "newDurability.ini")
+                if (getter >= 0)
+                    SetGlobalVariable fArmorBaseHealth getter
+                endif
+
+                set getter to (GetINIFloat "PARAMS:fWeaponSkillMult", "newDurability.ini")
+                if (getter >= 0)
+                    if (getter <= 3)
+                        SetGlobalVariable fWeaponSkillMult getter
+                    endif
+                endif
+
+                set getter to (GetINIFloat "PARAMS:fArmorSkillMult", "newDurability.ini")
+                if (getter >= 0)
+                    SetGlobalVariable fArmorSkillMult getter
+                endif
+
+                set getter to 0
+            endif
+        endif
+    endif
+End
+
+; Initialization script that runs on HUDMainMenu.
+; Loads some configurations once.
+; Modified Date: 02/04/2025
+Begin GameMode
+    if (GetGameLoaded != 0)
+        GetLoadedType newDurabilityList, 40
+
+        Label 1
+        if (ListGetCount newDurabilityList != 0)
+            set weapon to ListGetNthForm newDurabilityList, 0
+            ListRemoveNthForm newDurabilityList, 0
+            if (IsQuestItem weapon == 1)
+                Goto 1
+            endif
+
+            ; FIX: Disable DamageToWeapon Flag
+            set flag to GetWeaponFlags2 weapon
+            if ((flag % 256) >= 128)
+                set flag to flag - 128
+                SetWeaponFlags2 flag, weapon
+            endif
+            Goto 1
+        endif
+        set weapon to 0
+        set flag to 0
+
+        if (bDisableDurability == 1)
+            StopQuest newDurabilityLogic
+            StopQuest newDurability
+        endif
+    endif
+End

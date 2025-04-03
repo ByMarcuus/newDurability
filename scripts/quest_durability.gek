@@ -1,0 +1,85 @@
+scn newDurabilityLogicScript
+
+ref armor
+ref weapon
+ref lastWeapon
+
+float durability
+float rating
+float baseWeapon
+float baseArmor
+int multWeapon
+int multArmor
+
+
+; Restart the durability at 'LevelUp Menu', 'cause the special/skills can change.
+; Modified Date: 03/04/2025
+Begin MenuMode 1027
+	set rating to 0
+	set lastWeapon to 0
+End
+
+; FIXME: oye que
+Begin GameMode
+	if (baseWeapon == 0)
+		set baseWeapon to GetGlobalVariable fWeaponBaseHealth
+		set baseArmor to GetGlobalVariable fArmorBaseHealth
+		set multWeapon to GetGlobalVariable fWeaponSkillMult
+		set multArmor to GetGlobalVariable fArmorSkillMult
+	endif
+End
+
+; Script that modifies in-game weapon and armor durability.
+; Modified Date: 03/04/2025
+Begin GameMode
+	set weapon to Player.GetEqObj 5
+
+	if (weapon == 0)
+		; pass
+	elseif (weapon != lastWeapon)
+		set lastWeapon to weapon
+
+		if (GetWeaponSkill weapon == 38)
+			set durability to Player.GetAV MeleeWeapons
+		elseif (GetWeaponSkill weapon == 45)
+			set durability to Player.GetAV Unarmed
+		elseif (GetWeaponSkill weapon == 41)
+			set durability to Player.GetAV SmallGuns
+		elseif (GetWeaponSkill weapon == 34)
+			set durability to Player.GetAV EnergyWeapons
+		elseif (GetWeaponSkill weapon == 33)
+			set durability to Player.GetAV BigGuns
+		endif
+
+        set durability to (100 - durability) / 100
+        set durability to baseWeapon + (durability * multWeapon)
+        dbprintc "Weapon durability: %.5f", durability
+		set durability to durability / GetDamage weapon
+        ; BUG: Float loss precision
+
+		; FIX: Energy 'Small Gun'-like
+        ; Establishes the durability for all types of weapons.
+		; This is done because it seems that some weapons are not attached into the correct 'fDamage*' variable.
+		SetNumericGameSetting "fDamageToWeaponGunMult", durability
+		SetNumericGameSetting "fDamageToWeaponEnergyMult", durability
+		SetNumericGameSetting "fDamageToWeaponMeleeMult", durability
+		SetNumericGameSetting "fDamageToWeaponLauncherMult", durability
+	endif
+
+	if (Player.GetArmorRating && Player.GetArmorRating != rating)
+		set rating to Player.GetArmorRating
+		set armor to Player.GetEqObj 2 ; Upper Body Piece
+
+		if (IsPA armor || GetWeight armor >= 25)
+			set durability to baseArmor + ((10 - Player.GetAV Strength) * multArmor)
+		elseif (GetWeight armor >= 15)
+			set durability to baseArmor + ((10 - Player.GetAV Endurance) * multArmor)
+		else
+			set durability to baseArmor + ((10 - Player.GetAV Agility) * multArmor)
+		endif
+
+		dbprintc "Armor durability: %.5f", durability
+		set durability to durability / rating
+		SetNumericGameSetting "fDamageToArmorPercentage", durability
+	endif
+End
