@@ -10,7 +10,6 @@ short bDisableDurability
 
 ; Initialization script that runs on HUDMainMenu.
 ; Loads some configurations once.
-; Modified Date: 02/04/2025
 Begin MenuMode 1004
     if (GetGameRestarted != 0)
         if (FileExists "config/newDurability.ini" != 0)
@@ -21,48 +20,55 @@ Begin MenuMode 1004
             endif
 
             if (GetINIFloat "EXTRAS:bDisableDurability")
+                dbprintc "NewDurability: Disabling durability..."
                 set bDisableDurability to 1
                 SetNumericGameSetting "fDamageToArmorPercentage", 0
                 SetNumericGameSetting "fDamageToWeaponGunMult", 0
                 SetNumericGameSetting "fDamageToEnergyGunMult", 0
                 SetNumericGameSetting "fDamageToMeleeGunMult", 0
-                SetNumericGameSetting "fDamageToWeaponLauncherMul", 0
+                SetNumericGameSetting "fDamageToWeaponLauncherMult", 0
             else
-                set getter to (GetINIFloat "PARAMS:fWeaponBaseHealth", "newDurability.ini")
+                dbprintc "NewDurability: Enabling durability..."
+                set getter to (GetINIFloat "WEAPONS:fWeaponBaseHealth", "newDurability.ini")
                 if (getter >= 0)
                     if (getter <= 3)
                         SetGlobalVariable fWeaponBaseHealth getter
+                        dbprintc "NewDurability: Set fWeaponBaseHealth (%.2f)", getter
                     endif
                 endif
 
-                set getter to (GetINIFloat "PARAMS:fArmorBaseHealth", "newDurability.ini")
+                set getter to (GetINIFloat "ARMORS:fArmorBaseHealth", "newDurability.ini")
                 if (getter >= 0)
                     SetGlobalVariable fArmorBaseHealth getter
+                    dbprintc "NewDurability: Set fArmorBaseHealth (%.2f)", getter
                 endif
 
-                set getter to (GetINIFloat "PARAMS:fWeaponSkillMult", "newDurability.ini")
+                set getter to (GetINIFloat "WEAPONS:fWeaponSkillMult", "newDurability.ini")
                 if (getter >= 0)
                     if (getter <= 3)
                         SetGlobalVariable fWeaponSkillMult getter
+                        dbprintc "NewDurability: Set fWeaponSkillMult (%.2f)", getter
                     endif
                 endif
 
-                set getter to (GetINIFloat "PARAMS:fArmorSkillMult", "newDurability.ini")
+                set getter to (GetINIFloat "ARMORS:fArmorSkillMult", "newDurability.ini")
                 if (getter >= 0)
                     SetGlobalVariable fArmorSkillMult getter
+                    dbprintc "NewDurability: Set fArmorSkillMult (%.2f)", getter
                 endif
 
                 set getter to 0
             endif
+        else
+            printc "NewDurability: config/newDurability.ini not found!"
         endif
     endif
 End
 
-; Initialization script that runs on HUDMainMenu.
-; Loads some configurations once.
-; Modified Date: 02/04/2025
+; Script that disables OverrideDamageToWeapon Flag
 Begin GameMode
     if (GetGameLoaded != 0)
+        dbprintc "NewDurability: Disabling DamageToWeapon Flag..."
         GetLoadedType newDurabilityList, 40
 
         Label 1
