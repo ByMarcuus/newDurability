@@ -21,6 +21,7 @@ End
 ; Script that modifies in-game weapon and armor durability.
 Begin GameMode
 	set weapon to Player.GetEqObj 5
+	set rating to Player.GetArmorRating
 
 	if (weapon == 0)
 		; pass
@@ -43,7 +44,7 @@ Begin GameMode
 		endif
 
 		if (skill != 0)
-			set durability to (GetGlobalVariable fWeaponBaseHealth) + (((100 - durability) / 100) * (GetGlobalVariable fWeaponSkillMult))
+			set durability to fWeaponBaseHealth + (((100 - durability) / 100) * fWeaponSkillMult)
 			dbprintc "Weapon durability: %.5f", durability
 			set durability to durability / GetDamage weapon ; BUG: Float loss precision
 
@@ -57,24 +58,24 @@ Begin GameMode
 		endif
 	endif
 
-	set rating to Player.GetArmorRating
-
 	if (rating == 0)
 		; pass
 	elseif (rating != lastRating)
 		set lastRating to rating
 		set armor to Player.GetEqObj 2 ; Upper Body Piece
+		set skill to GetWeight armor
 
-		if (IsPA armor || GetWeight armor >= 25)
+		if (IsPA armor || skill >= 25)
 			set durability to Player.GetAV Strength
-		elseif (GetWeight armor >= 15)
+		elseif (skill >= 15)
 			set durability to Player.GetAV Endurance
 		else
 			set durability to Player.GetAV Agility
 		endif
 
-		set durability to (GetGlobalVariable fArmorBaseHealth) + (((10 - durability) / 10) * (GetGlobalVariable fArmorSkillMult))
+		set durability to fArmorBaseHealth + (((10 - durability) / 10) * fArmorSkillMult)
 		dbprintc "Armor durability: %.5f", durability
+		set durability to durability / lastRating ; BUG: Float loss precision
 		SetNumericGameSetting "fDamageToArmorPercentage", durability
 	endif
 End

@@ -12,7 +12,9 @@ short bDisableDurability
 ; Loads some configurations once.
 Begin MenuMode 1004
     if (GetGameRestarted != 0)
-        if (FileExists "config/newDurability.ini" != 0)
+        if (FileExists "config/newDurability.ini" == 0)
+            printc "NewDurability: config/newDurability.ini not found!"
+        else
             if (GetINIFloat "DEBUG:bEnablePrints", "newDurability.ini")
                 DBMode 1, (GetModIndex "NewDurability.esp")
             else
@@ -53,14 +55,14 @@ Begin MenuMode 1004
 
                 set getter to (GetINIFloat "ARMORS:fArmorSkillMult", "newDurability.ini")
                 if (getter >= 0)
-                    SetGlobalVariable fArmorSkillMult getter
-                    dbprintc "NewDurability: Set fArmorSkillMult (%.2f)", getter
+                    if (getter <= 3)
+                        SetGlobalVariable fArmorSkillMult getter
+                        dbprintc "NewDurability: Set fArmorSkillMult (%.2f)", getter
+                    endif
                 endif
 
                 set getter to 0
             endif
-        else
-            printc "NewDurability: config/newDurability.ini not found!"
         endif
     endif
 End
@@ -68,7 +70,7 @@ End
 ; Script that disables OverrideDamageToWeapon Flag
 Begin GameMode
     if (GetGameLoaded != 0)
-        dbprintc "NewDurability: Disabling DamageToWeapon Flag..."
+        dbprintc "NewDurability: Disabling 'Override DamageToWeaponMult' Flag..."
         GetLoadedType newDurabilityList, 40
 
         Label 1
@@ -91,6 +93,7 @@ Begin GameMode
         set flag to 0
 
         if (bDisableDurability == 1)
+            dbprintc "NewDurability: Disabling durability logic..."
             StopQuest newDurabilityLogic
             StopQuest newDurability
         endif
