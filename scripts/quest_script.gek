@@ -21,7 +21,7 @@ Begin MenuMode 1004
                 DBMode 0, (GetModIndex "NewDurability.esp")
             endif
 
-            if (GetINIFloat "EXTRAS:bDisableDurability")
+            if (GetINIFloat "EXTRAS:bDisableDurability") ; FIXME: This does not have "newDurability.ini" as a second parameter.
                 dbprintc "NewDurability: Disabling durability..."
                 set bDisableDurability to 1
                 SetNumericGameSetting "fDamageToArmorPercentage", 0
