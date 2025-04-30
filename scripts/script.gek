@@ -1,0 +1,37 @@
+scn newDurabilityScript
+
+short bDisableDurability
+
+Begin MenuMode 4
+    if eval (GetGameRestarted)
+        if eval (!FileExists "config/NewDurability.ini")
+            print "'data/config/NewDurabitily.ini' not found!"
+        else
+            let bDisableDurability := GetINIFloat "EXTRAS:bDisableDurability", "NewDurability.ini"
+            if eval (bDisableDurability)
+                SetNumericGameSetting "fDamageToArmorPercentage", 0
+                SetNumericGameSetting "fDamageToWeaponValue", 0
+            else
+                let newDurabilityWeaponBase := GetINIFloat "WEAPONS:fWeaponBaseHealth", "NewDurability.ini" ; Use clamp?
+                let newDurabilityWeaponSkillMult := GetINIFloat "WEAPONS:fWeaponSkillMult", "NewDurability.ini"
+                let newDurabilityArmorBase := GetINIFloat "ARMORS:fArmorBaseHealth", "NewDurability.ini"
+                let newDurabilityArmorSkillMult := GetINIFloat "ARMORS:fArmorSkillMult", "NewDurability.ini"
+            endif
+        endif
+
+        if eval (!bDisableDurability)
+            SetEventHandler "PostLoadGame", "" ; FIXME:
+            SetEventHandler "OnEquip", "" ; FIXME:
+        endif
+    endif
+End
+
+; OnPostLoad
+Begin Function { bLoadedWithoutError }
+    if eval (!bLoadedWithoutError)
+        return
+    endif
+
+    GetLoadedType newDurabilityList, 40
+
+End

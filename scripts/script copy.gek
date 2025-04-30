@@ -10,7 +10,7 @@ short bDisableDurability
 
 ; Initialization script that runs on HUDMainMenu.
 ; Loads some configurations once.
-Begin MenuMode 1004
+Begin MenuMode 4
     if (GetGameRestarted != 0)
         if (FileExists "config/newDurability.ini" == 0)
             printc "NewDurability: config/newDurability.ini not found!"
@@ -21,14 +21,11 @@ Begin MenuMode 1004
                 DBMode 0, (GetModIndex "NewDurability.esp")
             endif
 
-            if (GetINIFloat "EXTRAS:bDisableDurability") ; FIXME: This does not have "newDurability.ini" as a second parameter.
+            if (GetINIFloat "EXTRAS:bDisableDurability")
                 dbprintc "NewDurability: Disabling durability..."
                 set bDisableDurability to 1
                 SetNumericGameSetting "fDamageToArmorPercentage", 0
-                SetNumericGameSetting "fDamageToWeaponGunMult", 0
-                SetNumericGameSetting "fDamageToEnergyGunMult", 0
-                SetNumericGameSetting "fDamageToMeleeGunMult", 0
-                SetNumericGameSetting "fDamageToWeaponLauncherMult", 0
+                SetNumericGameSetting "fDamageToWeaponValue", 0
             else
                 dbprintc "NewDurability: Enabling durability..."
                 set getter to (GetINIFloat "WEAPONS:fWeaponBaseHealth", "newDurability.ini")
@@ -98,4 +95,86 @@ Begin GameMode
             StopQuest newDurability
         endif
     endif
+End
+
+scn newDurabilityLogicScript
+
+ref armor
+ref weapon
+ref lastWeapon
+
+float durability
+float rating
+float lastRating
+int skill
+
+
+; Restart the durability at 'LevelUp Menu', 'cause the special/skills can change.
+Begin MenuMode 1027
+	if (lastWeapon != 0 || lastRating != 0)
+		set lastWeapon to 0
+		set lastRating to 0
+	endif
+End
+
+; Script that modifies in-game weapon and armor durability.
+Begin GameMode
+	set weapon to Player.GetEqObj 5
+	set rating to Player.GetArmorRating
+
+	if (weapon == 0)
+		; pass
+	elseif (weapon != lastWeapon)
+		set lastWeapon to weapon
+		set skill to GetWeaponSkill weapon
+
+		if (skill == 38)
+			set durability to Player.GetAV MeleeWeapons
+		elseif (skill == 45)
+			set durability to Player.GetAV Unarmed
+		elseif (skill == 41)
+			set durability to Player.GetAV SmallGuns
+		elseif (skill == 34)
+			set durability to Player.GetAV EnergyWeapons
+		elseif (skill == 33)
+			set durability to Player.GetAV BigGuns
+		else
+			set skill to 0
+		endif
+
+		if (skill != 0)
+			set durability to fWeaponBaseHealth + (((100 - durability) / 100) * fWeaponSkillMult)
+			dbprintc "Weapon durability: %.5f", durability
+			set durability to durability / GetDamage weapon ; BUG: Float loss precision
+
+			; FIX: Energy 'Small Gun'-like
+			; Establishes the durability for all types of weapons.
+			; This is done because it seems that some weapons are not attached into the correct 'fDamage*' variable.
+			SetNumericGameSetting "fDamageToWeaponGunMult", durability
+			SetNumericGameSetting "fDamageToWeaponEnergyMult", durability
+			SetNumericGameSetting "fDamageToWeaponMeleeMult", durability
+			SetNumericGameSetting "fDamageToWeaponLauncherMult", durability
+		endif
+	endif
+
+	if (rating == 0)
+		; pass
+	elseif (rating != lastRating)
+		set lastRating to rating
+		set armor to Player.GetEqObj 2 ; Upper Body Piece
+		set skill to GetWeight armor
+
+		if (IsPA armor || skill >= 25)
+			set durability to Player.GetAV Strength
+		elseif (skill >= 15)
+			set durability to Player.GetAV Endurance
+		else
+			set durability to Player.GetAV Agility
+		endif
+
+		set durability to fArmorBaseHealth + (((10 - durability) / 10) * fArmorSkillMult)
+		dbprintc "Armor durability: %.5f", durability
+		set durability to durability / lastRating ; BUG: Float loss precision
+		SetNumericGameSetting "fDamageToArmorPercentage", durability
+	endif
 End
