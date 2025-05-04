@@ -2,9 +2,8 @@ scn newDurabilitySetWeapon
 
 float durability
 short skill
-ref weapon
 
-Begin Function { weapon }
+Begin Function { ref weapon }
     let skill := GetWeaponSkill weapon
 
     if eval (skill == 41)
@@ -24,6 +23,6 @@ Begin Function { weapon }
     endif
 
     let durability := fWeaponBaseHealth + (((100 - durability) / 100) * fWeaponSkillMult)
-    SetNumericGameSetting "fDamageToWeaponValue", durability
+    SetNumericGameSetting "fDamageToWeaponValue", durability ; TODO: Check if this is stored in the game
     PrintD "Weapon Durability: " + $durability
 End

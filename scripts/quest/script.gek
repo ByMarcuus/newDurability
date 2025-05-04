@@ -9,14 +9,16 @@ short fArmorSkillMult
 Begin MenuMode 4
     if eval (GetGameRestarted)
         if eval (!FileExists "config/NewDurability.ini")
-            print "'data/config/NewDurabitily.ini' not found!"
+            print "'data/config/NewDurabitily.ini' not found!" ; TODO: Check if works
         else
             if eval (GetINIFloat "DEBUG:bEnablePrints", "NewDurability.ini")
-                DBMode 1, (GetModIndex "NewDurability.esp")
+                DBMode 1, (GetModIndex "NewDurability.esp") ; TODO: Enable, check, disable, check
             else
                 DBMode 0, (GetModIndex "NewDurability.esp")
             endif
 
+            ; TODO: Enable durability, check, disable, check.
+            ; TODO: Disable durability, check, uninstall mod, check everything is reverted.
             let bDisableDurability := GetINIFloat "EXTRAS:bDisableDurability", "NewDurability.ini"
             if eval (bDisableDurability)
                 PrintD "NewDurability: Disabling durability..."
@@ -28,10 +30,11 @@ Begin MenuMode 4
                 let fWeaponSkillMult := Clamp (GetINIFloat "WEAPONS:fWeaponSkillMult", "NewDurability.ini"), 0, 3
                 let fArmorBaseHealth := Clamp (GetINIFloat "ARMORS:fArmorBaseHealth", "NewDurability.ini"), 0, 3
                 let fArmorSkillMult := Clamp (GetINIFloat "ARMORS:fArmorSkillMult", "NewDurability.ini"), 0, 3
-                PrintD "Weapon Base Health: " + $fWeaponBaseHealth + " | Weapon Skill Mult: " + $fWeaponSkillMult + " | Armor Base Health: " + $fArmorBaseHealth + " | Armor Skill Mult: " + $fArmorSkillMult
+                DPrintV fWeaponBaseHealth, fWeaponSkillMult, fArmorBaseHealth, fArmorSkillMult ; TODO: Check if the clamp is correct
             endif
         endif
 
         SetEventHandler "PostLoadGame", "newDurabilityPostLoadGame"
+        StopQuest newDurabilityQuest ; TODO: Check if, after stopping, the variables can be used in other scripts
     endif
 End
