@@ -1,37 +1,147 @@
 scn newDurabilityScript
 
 short bDisableDurability
+short fWeaponBaseHealth
+short fWeaponSkillMult
+short fArmorBaseHealth
+short fArmorSkillMult
 
 Begin MenuMode 4
     if eval (GetGameRestarted)
         if eval (!FileExists "config/NewDurability.ini")
             print "'data/config/NewDurabitily.ini' not found!"
         else
+            if eval (GetINIFloat "DEBUG:bEnablePrints", "NewDurability.ini")
+                DBMode 1, (GetModIndex "NewDurability.esp")
+            else
+                DBMode 0, (GetModIndex "NewDurability.esp")
+            endif
+
             let bDisableDurability := GetINIFloat "EXTRAS:bDisableDurability", "NewDurability.ini"
             if eval (bDisableDurability)
+                PrintD "NewDurability: Disabling durability..."
                 SetNumericGameSetting "fDamageToArmorPercentage", 0
                 SetNumericGameSetting "fDamageToWeaponValue", 0
             else
-                let newDurabilityWeaponBase := GetINIFloat "WEAPONS:fWeaponBaseHealth", "NewDurability.ini" ; Use clamp?
-                let newDurabilityWeaponSkillMult := GetINIFloat "WEAPONS:fWeaponSkillMult", "NewDurability.ini"
-                let newDurabilityArmorBase := GetINIFloat "ARMORS:fArmorBaseHealth", "NewDurability.ini"
-                let newDurabilityArmorSkillMult := GetINIFloat "ARMORS:fArmorSkillMult", "NewDurability.ini"
+                PrintD "NewDurability: Enabling durability..."
+                let fWeaponBaseHealth := Clamp (GetINIFloat "WEAPONS:fWeaponBaseHealth", "NewDurability.ini"), 0, 3
+                let fWeaponSkillMult := Clamp (GetINIFloat "WEAPONS:fWeaponSkillMult", "NewDurability.ini"), 0, 3
+                let fArmorBaseHealth := Clamp (GetINIFloat "ARMORS:fArmorBaseHealth", "NewDurability.ini"), 0, 3
+                let fArmorSkillMult := Clamp (GetINIFloat "ARMORS:fArmorSkillMult", "NewDurability.ini"), 0, 3
+                PrintD "Weapon Base Health: " + $fWeaponBaseHealth + " | Weapon Skill Mult: " + $fWeaponSkillMult + " | Armor Base Health: " + $fArmorBaseHealth + " | Armor Skill Mult: " + $fArmorSkillMult
             endif
         endif
 
-        if eval (!bDisableDurability)
-            SetEventHandler "PostLoadGame", "" ; FIXME:
-            SetEventHandler "OnEquip", "" ; FIXME:
-        endif
+        SetEventHandler "PostLoadGame", "newDurabilityPostLoadGame"
     endif
 End
 
 ; OnPostLoad
+int index
+int flags
+short bLoadedWithoutError
+
+ref weapon
+
 Begin Function { bLoadedWithoutError }
+    ; TODO: Check here if the event is already set, and remove it if so
+
     if eval (!bLoadedWithoutError)
         return
     endif
-
+    PrintD "NewDurability: Disabling 'Override DamageToWeaponMult' Flag..."
     GetLoadedType newDurabilityList, 40
 
+    let index := ListGetCount newDurabilityList - 1
+    while (index -= 1) >= 0
+        let weapon := ListGetNthForm newDurabilityList, index
+        ListRemoveNthForm newDurabilityList, index
+        if eval (IsQuestItem weapon)
+            continue
+        endif
+
+        let flags := GetWeaponFlags2 weapon
+        if eval (GetBit flags, 7)
+            SetWeaponFlags2 weapon, (flags - 128)
+        endif
+    loop
+
+    if eval (!bDisableDurability)
+        ; FIXME: See if the event is already set
+        SetEventHandler "OnActorEquip", "newDurabilityOnActorEquip"
+    else
+        PrintD "NewDurability: Disabling durability logic..."
+        StopQuest "newDurabilityScript"
+    endif
+End
+
+; OnActorEquip
+int typeCode
+
+Begin Function { ref actor, ref item }
+    if eval (actor != Player || IsQuestItem item)
+        return
+    endif
+
+    let typeCode := GetObjectType item
+    if eval (typeCode == 40)
+        Call SetWeaponDurability, item
+    elseif eval (typeCode == 24)
+        Call SetArmorDurability
+    endif
+End
+
+; AfterLevelUp
+Begin Function {}
+    Call SetWeaponDurability, (Player.GetEquippedWeapon) ; TODO: If no weapon, return Fists. Check if it works
+    Call SetArmorDurability
+End
+
+; SetWeaponDurability
+float durability
+short skill
+ref weapon
+
+Begin Function { weapon }
+    let skill := GetWeaponSkill weapon
+
+    if eval (skill == 41)
+        let durability := Player.GetActorValue Guns ; TODO: Perhaps it works with numbers instead of strings?
+    elseif eval (skill == 33)
+        let durability := Player.GetActorValue BigGuns
+    elseif eval (skill == 34)
+        let durability := Player.GetActorValue EnergyWeapons
+    elseif eval (skill == 35)
+        let durability := Player.GetActorValue Explosives ; TODO: Get caution here
+    elseif eval (skill == 38)
+        let durability := Player.GetActorValue MeleeWeapons
+    elseif eval (skill == 45)
+        let durability := Player.GetActorValue Unarmed
+    else
+        return
+    endif
+
+    let durability := fWeaponBaseHealth + (((100 - durability) / 100) * fWeaponSkillMult)
+    SetNumericGameSetting "fDamageToWeaponValue", durability
+    PrintD "Weapon Durability: " + $durability
+End
+
+; SetArmorDurability
+Begin Function { }
+    let armorClass := Player.GetArmorClass
+
+    if eval (!armorClass)
+        SetNumericGameSetting "fDamageToArmorPercentage", 0.35 ; Set it to default value
+        return
+    elseif eval (armorClass == 1)
+        let durability := Player.GetActorValue Agility
+    elseif eval (armorClass == 2)
+        let durability := Player.GetActorValue Endurance
+    elseif eval (armorClass == 3)
+        let durability := Player.GetActorValue Strength
+    endif
+
+    let durability := fArmorBaseHealth + (((10 - durability) / 10) * fArmorSkillMult)
+    SetNumericGameSetting "fDamageToArmorPercentage", durability ; TODO: Check if this is correct
+    PrintD "Armor Durability: " + $durability
 End
