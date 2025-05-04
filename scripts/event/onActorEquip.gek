@@ -1,0 +1,16 @@
+scn newDurabilityOnEquip
+
+int typeCode
+
+Begin Function { ref actor, ref item }
+    if eval (actor != Player || IsQuestItem item)
+        return
+    endif
+
+    let typeCode := GetObjectType item
+    if eval (typeCode == 40)
+        Call SetWeaponDurability, item
+    elseif eval (typeCode == 24)
+        Call SetArmorDurability
+    endif
+End

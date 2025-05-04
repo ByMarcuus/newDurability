@@ -1,0 +1,6 @@
+scn newDurabilityOnLevelUp
+
+Begin MenuMode 1007
+    Call SetWeaponDurability, (Player.GetEquippedWeapon) ; TODO: If no weapon, return Fists. Check if it works
+    Call SetArmorDurability
+End

@@ -1,0 +1,37 @@
+scn newDurabilityScript
+
+short bDisableDurability
+short fWeaponBaseHealth
+short fWeaponSkillMult
+short fArmorBaseHealth
+short fArmorSkillMult
+
+Begin MenuMode 4
+    if eval (GetGameRestarted)
+        if eval (!FileExists "config/NewDurability.ini")
+            print "'data/config/NewDurabitily.ini' not found!"
+        else
+            if eval (GetINIFloat "DEBUG:bEnablePrints", "NewDurability.ini")
+                DBMode 1, (GetModIndex "NewDurability.esp")
+            else
+                DBMode 0, (GetModIndex "NewDurability.esp")
+            endif
+
+            let bDisableDurability := GetINIFloat "EXTRAS:bDisableDurability", "NewDurability.ini"
+            if eval (bDisableDurability)
+                PrintD "NewDurability: Disabling durability..."
+                SetNumericGameSetting "fDamageToArmorPercentage", 0
+                SetNumericGameSetting "fDamageToWeaponValue", 0
+            else
+                PrintD "NewDurability: Enabling durability..."
+                let fWeaponBaseHealth := Clamp (GetINIFloat "WEAPONS:fWeaponBaseHealth", "NewDurability.ini"), 0, 3
+                let fWeaponSkillMult := Clamp (GetINIFloat "WEAPONS:fWeaponSkillMult", "NewDurability.ini"), 0, 3
+                let fArmorBaseHealth := Clamp (GetINIFloat "ARMORS:fArmorBaseHealth", "NewDurability.ini"), 0, 3
+                let fArmorSkillMult := Clamp (GetINIFloat "ARMORS:fArmorSkillMult", "NewDurability.ini"), 0, 3
+                PrintD "Weapon Base Health: " + $fWeaponBaseHealth + " | Weapon Skill Mult: " + $fWeaponSkillMult + " | Armor Base Health: " + $fArmorBaseHealth + " | Armor Skill Mult: " + $fArmorSkillMult
+            endif
+        endif
+
+        SetEventHandler "PostLoadGame", "newDurabilityPostLoadGame"
+    endif
+End

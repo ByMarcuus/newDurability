@@ -1,0 +1,39 @@
+scn newDurabilityPostLoadGame
+
+int index
+int flags
+short bLoadedWithoutError
+
+ref weapon
+
+Begin Function { bLoadedWithoutError }
+    ; TODO: Check here if the event is already set, and remove it if so
+
+    if eval (!bLoadedWithoutError)
+        return
+    endif
+    PrintD "NewDurability: Disabling 'Override DamageToWeaponMult' Flag..."
+    GetLoadedType newDurabilityList, 40
+
+    let index := ListGetCount newDurabilityList - 1
+    while (index -= 1) >= 0
+        let weapon := ListGetNthForm newDurabilityList, index
+        ListRemoveNthForm newDurabilityList, index
+        if eval (IsQuestItem weapon)
+            continue
+        endif
+
+        let flags := GetWeaponFlags2 weapon
+        if eval (GetBit flags, 7)
+            SetWeaponFlags2 weapon, (flags - 128)
+        endif
+    loop
+
+    if eval (!bDisableDurability)
+        ; FIXME: See if the event is already set
+        SetEventHandler "OnActorEquip", "newDurabilityOnActorEquip"
+    else
+        PrintD "NewDurability: Disabling durability logic..."
+        StopQuest "newDurabilityScript"
+    endif
+End

@@ -1,0 +1,20 @@
+scn newDurabilitySetArmor
+
+Begin Function { }
+    let armorClass := Player.GetArmorClass
+
+    if eval (!armorClass)
+        SetNumericGameSetting "fDamageToArmorPercentage", 0.35 ; Set it to default value
+        return
+    elseif eval (armorClass == 1)
+        let durability := Player.GetActorValue Agility
+    elseif eval (armorClass == 2)
+        let durability := Player.GetActorValue Endurance
+    elseif eval (armorClass == 3)
+        let durability := Player.GetActorValue Strength
+    endif
+
+    let durability := fArmorBaseHealth + (((10 - durability) / 10) * fArmorSkillMult)
+    SetNumericGameSetting "fDamageToArmorPercentage", durability ; TODO: Check if this is correct
+    PrintD "Armor Durability: " + $durability
+End
