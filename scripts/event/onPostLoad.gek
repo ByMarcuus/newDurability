@@ -28,7 +28,7 @@ Begin Function { short bLoadedWithoutError }
         endif
     loop
 
-    if eval (!bDisableDurability)
+    if eval (!newDurabilityQuest.bDisableDurability)
         ; printvar (GetEventHandlers)
         SetEventHandlerAlt "OnActorEquip", "newDurabilityOnActorEquip" 1::Player ; TODO: Check if it's recreated every time
         ; SetOnMenuCloseEventHandler newDurabilityAfterLevelUp, 0, 1027
