@@ -1,0 +1,34 @@
+scn newDurabilityOnGameLoad
+
+int iIndex
+int iFlags1
+int iFlags2
+
+ref rWeapon
+
+Begin Function { short bLoadedWithoutError }
+    if eval (!bLoadedWithoutError)
+        return
+    endif
+
+    PrintD "NewDurability: Disabling 'Override DamageToWeaponMult' Flag..."
+    GetLoadedType newDurabilityList, 40
+
+    let iIndex := ListGetCount newDurabilityList
+    while (iIndex -= 1) >= 0
+        let rWeapon := ListGetNthForm newDurabilityList, iIndex
+        ListRemoveNthForm newDurabilityList, iIndex
+
+        let iFlags1 := GetWeaponFlags1 rWeapon ; 'Playable' flag
+        let iFlags2 := GetWeaponFlags2 rWeapon ; 'Override DamageToWeaponMult' flag
+        if eval (GetBit iFlags2, 7 && !(IsQuestItem rWeapon) && !(GetBit iFlags1, 7))
+            SetWeaponFlags2 rWeapon, (iFlags2 - 128)
+        endif
+    loop
+
+    if eval (!bDisableDurability) ; BUG: Seems that globals are stored in the savegame, so they willn't be work as intended
+        SetEventHandlerAlt "OnActorEquip", newDurabilityOnEquip 1::Player ; TODO: Check if it's recreated every time
+        ; SetOnMenuCloseEventHandler newDurabilityAfterLevelUp, 0, 1027
+        SetOnMenuCloseEventHandler newDurabilityAfterLevelUp, 1, 1027
+    endif
+End

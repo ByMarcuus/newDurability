@@ -1,11 +1,11 @@
 scn newDurabilityScript
 
-short bDisableDurability
 float fWeaponBaseHealth
 float fWeaponSkillMult
 float fArmorBaseHealth
 float fArmorSkillMult
 
+; TODO: Remove the INI and replace it with Mod Configuration Menu
 Begin MenuMode 4
     if eval (GetGameRestarted)
         if eval (!FileExists "config/NewDurability.ini")
@@ -33,7 +33,8 @@ Begin MenuMode 4
             endif
         endif
 
-        SetEventHandler "PostLoadGame", newDurabilityPostLoadGame
-        StopQuest newDurabilityQuest ; TODO: Check if, after stopping, the variables can be used in other scripts
+        SetEventHandler "NewGame", ({} => Call newDurabilityOnGameLoad, 1)
+        SetEventHandler "PostLoadGame", newDurabilityOnGameLoad
+        StopQuest newDurabilityQuest
     endif
 End

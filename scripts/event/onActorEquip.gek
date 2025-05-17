@@ -9,8 +9,8 @@ Begin Function { ref actor, ref item }
 
     let typeCode := GetObjectType item
     if eval (typeCode == 40)
-        Player.Call SetWeaponDurability, item
+        Player.Call newDurabilitySetWeapon, item
     elseif eval (typeCode == 24)
-        Player.Call SetArmorDurability
+        Player.Call newDurabilitySetArmor
     endif
 End

@@ -1,5 +1,8 @@
 scn newDurabilitySetArmor
 
+float durability
+short armorClass
+
 Begin Function { }
     let armorClass := Player.GetArmorClass
 
