@@ -5,13 +5,11 @@ ref weapon
 float getter
 float flag
 
-short bDisableDurability
-
 
 ; Initialization script that runs on HUDMainMenu.
 ; Loads some configurations once.
 Begin MenuMode 1004
-    if (GetGameRestarted != 0)
+    if (GetGameRestarted)
         if (FileExists "config/newDurability.ini" == 0)
             printc "NewDurability: config/newDurability.ini not found!"
         else
@@ -21,9 +19,9 @@ Begin MenuMode 1004
                 DBMode 0, (GetModIndex "NewDurability.esp")
             endif
 
-            if (GetINIFloat "EXTRAS:bDisableDurability") ; FIXME: This does not have "newDurability.ini" as a second parameter.
+            if (GetINIFloat "EXTRAS:bDisableDurability")
                 dbprintc "NewDurability: Disabling durability..."
-                set bDisableDurability to 1
+                Player.AuxVarSetFlt "*bDisableDurability", 1 ; FIX: Change "globals" to Temporary-Private "Auxiliary Vars"
                 SetNumericGameSetting "fDamageToArmorPercentage", 0
                 SetNumericGameSetting "fDamageToWeaponGunMult", 0
                 SetNumericGameSetting "fDamageToEnergyGunMult", 0
@@ -34,21 +32,21 @@ Begin MenuMode 1004
                 set getter to (GetINIFloat "WEAPONS:fWeaponBaseHealth", "newDurability.ini")
                 if (getter >= 0)
                     if (getter <= 3)
-                        SetGlobalVariable fWeaponBaseHealth getter
+                        Player.AuxVarSetFlt "*fWeaponBaseHealth", getter
                         dbprintc "NewDurability: Set fWeaponBaseHealth (%.2f)", getter
                     endif
                 endif
 
                 set getter to (GetINIFloat "ARMORS:fArmorBaseHealth", "newDurability.ini")
                 if (getter >= 0)
-                    SetGlobalVariable fArmorBaseHealth getter
+                    Player.AuxVarSetFlt "*fArmorBaseHealth", getter
                     dbprintc "NewDurability: Set fArmorBaseHealth (%.2f)", getter
                 endif
 
                 set getter to (GetINIFloat "WEAPONS:fWeaponSkillMult", "newDurability.ini")
                 if (getter >= 0)
                     if (getter <= 3)
-                        SetGlobalVariable fWeaponSkillMult getter
+                        Player.AuxVarSetFlt "*fWeaponSkillMult", getter
                         dbprintc "NewDurability: Set fWeaponSkillMult (%.2f)", getter
                     endif
                 endif
@@ -56,7 +54,7 @@ Begin MenuMode 1004
                 set getter to (GetINIFloat "ARMORS:fArmorSkillMult", "newDurability.ini")
                 if (getter >= 0)
                     if (getter <= 3)
-                        SetGlobalVariable fArmorSkillMult getter
+                        Player.AuxVarSetFlt "*fArmorSkillMult", getter
                         dbprintc "NewDurability: Set fArmorSkillMult (%.2f)", getter
                     endif
                 endif
@@ -69,7 +67,7 @@ End
 
 ; Script that disables OverrideDamageToWeapon Flag
 Begin GameMode
-    if (GetGameLoaded != 0)
+    if (GetGameLoaded)
         dbprintc "NewDurability: Disabling 'Override DamageToWeaponMult' Flag..."
         GetLoadedType newDurabilityList, 40
 
@@ -92,10 +90,12 @@ Begin GameMode
         set weapon to 0
         set flag to 0
 
-        if (bDisableDurability == 1)
+        ; FIX: Cannot enable durability after disabling it
+        if (Player.AuxVarGetFlt "*bDisableDurability")
             dbprintc "NewDurability: Disabling durability logic..."
             StopQuest newDurabilityLogic
-            StopQuest newDurability
+        elseif (GetQuestRunning newDurabilityLogic == 0)
+            StartQuest newDurabilityLogic
         endif
     endif
 End

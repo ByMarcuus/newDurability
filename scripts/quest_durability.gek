@@ -7,6 +7,7 @@ ref lastWeapon
 float durability
 float rating
 float lastRating
+
 int skill
 
 
@@ -44,7 +45,7 @@ Begin GameMode
 		endif
 
 		if (skill != 0)
-			set durability to fWeaponBaseHealth + (((100 - durability) / 100) * fWeaponSkillMult)
+			set durability to (Player.AuxVarGetFlt "*fWeaponBaseHealth") + (((100 - durability) / 100) * (Player.AuxVarGetFlt "*fWeaponSkillMult"))
 			dbprintc "Weapon durability: %.5f", durability
 			set durability to durability / GetDamage weapon ; BUG: Float loss precision
 
@@ -73,7 +74,7 @@ Begin GameMode
 			set durability to Player.GetAV Agility
 		endif
 
-		set durability to fArmorBaseHealth + (((10 - durability) / 10) * fArmorSkillMult)
+		set durability to (Player.AuxVarGetFlt "*fArmorBaseHealth") + (((10 - durability) / 10) * (Player.AuxVarGetFlt "*fArmorSkillMult"))
 		dbprintc "Armor durability: %.5f", durability
 		set durability to durability / lastRating ; BUG: Float loss precision
 		SetNumericGameSetting "fDamageToArmorPercentage", durability
