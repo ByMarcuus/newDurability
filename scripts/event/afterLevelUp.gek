@@ -1,6 +1,8 @@
 scn newDurabilityAfterLevelUp
 
-Begin MenuMode 1007
-    Player.Call newDurabilitySetWeapon, (Player.GetEquippedWeapon) ; TODO: If no weapon, return Fists. Check if it works
-    Player.Call newDurabilitySetArmor
+int menu
+
+Begin Function { menu }
+    Call newDurabilitySetWeapon, (Player.GetEquippedWeapon) ; TODO: If no weapon, return Fists. Check if it works
+    Call newDurabilitySetArmor
 End

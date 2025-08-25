@@ -1,5 +1,7 @@
 scn newDurabilitySetArmor
 
+float baseHealth
+float skillMult
 float durability
 short armorClass
 
@@ -16,7 +18,10 @@ Begin Function { }
         return
     endif
 
-    let durability := fArmorBaseHealth + (((10 - durability) / 10) * fArmorSkillMult)
+    let baseHealth := Clamp (GetINIFloat_Cached "ARMORS:fArmorBaseHealth", "NewDurability.ini"), 0, 3
+    let skillMult := Clamp (GetINIFloat_Cached "ARMORS:fArmorSkillMult", "NewDurability.ini"), 0, 3
+
+    let durability := baseHealth + (((10 - durability) / 10) * skillMult)
     SetNumericGameSetting "fDamageToArmorPercentage", durability ; TODO: Check if this is correct
     PrintD "Armor Durability: " + $durability
 End

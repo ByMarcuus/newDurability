@@ -1,5 +1,7 @@
 scn newDurabilitySetWeapon
 
+float baseHealth
+float skillMult
 float durability
 short skill
 
@@ -22,7 +24,10 @@ Begin Function { ref weapon }
         return
     endif
 
-    let durability := fWeaponBaseHealth + (((100 - durability) / 100) * fWeaponSkillMult)
+    let baseHealth := Clamp (GetINIFloat_Cached "WEAPONS:fWeaponBaseHealth", "NewDurability.ini"), 0, 3
+    let skillMult := Clamp (GetINIFloat_Cached "WEAPONS:fWeaponSkillMult", "NewDurability.ini"), 0, 3
+
+    let durability := baseHealth + (((100 - durability) / 100) * skillMult)
     SetNumericGameSetting "fDamageToWeaponValue", durability ; TODO: Check if this is stored in the game
     PrintD "Weapon Durability: " + $durability
 End

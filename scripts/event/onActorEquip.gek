@@ -2,15 +2,18 @@ scn newDurabilityOnEquip
 
 int typeCode
 
-Begin Function { ref actor, ref item }
+ref actor
+ref item
+
+Begin Function { actor, item }
     if eval (IsQuestItem item) ; TODO: Do we really want to skip quest items?
         return
     endif
 
     let typeCode := GetObjectType item
     if eval (typeCode == 40)
-        Player.Call newDurabilitySetWeapon, item
+        Call newDurabilitySetWeapon, item
     elseif eval (typeCode == 24)
-        Player.Call newDurabilitySetArmor
+        Call newDurabilitySetArmor
     endif
 End
