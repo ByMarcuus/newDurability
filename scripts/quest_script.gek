@@ -5,8 +5,10 @@ ref weapon
 float getter
 float flag
 
+; TODO: Add a way to make disable or standarize the item health (in order to remove unnecesary mechanics) -> It's better to do it in another mod
+    ; TODO: Where can I see the item health at the UI? -> Other mod
 
-; Initialization script that runs on HUDMainMenu.
+; Initialization script that intentionally runs on HUDMainMenu (really runs everywhere except GameMode).
 ; Loads some configurations once.
 Begin MenuMode 1004
     if (GetGameRestarted)
@@ -21,11 +23,12 @@ Begin MenuMode 1004
 
             if (GetINIFloat "EXTRAS:bDisableDurability")
                 dbprintc "NewDurability: Disabling durability..."
-                Player.AuxVarSetFlt "*bDisableDurability", 1 ; FIX: Change "globals" to Temporary-Private "Auxiliary Vars"
+                ; FIX: Change "globals" to Temporary-Private "Auxiliary Vars"
+                Player.AuxVarSetFlt "*bDisableDurability", 1
                 SetNumericGameSetting "fDamageToArmorPercentage", 0
                 SetNumericGameSetting "fDamageToWeaponGunMult", 0
-                SetNumericGameSetting "fDamageToEnergyGunMult", 0
-                SetNumericGameSetting "fDamageToMeleeGunMult", 0
+                SetNumericGameSetting "fDamageToWeaponEnergyMult", 0
+                SetNumericGameSetting "fDamageToWeaponMeleeMult", 0
                 SetNumericGameSetting "fDamageToWeaponLauncherMult", 0
             else
                 dbprintc "NewDurability: Enabling durability..."
@@ -91,6 +94,7 @@ Begin GameMode
         set flag to 0
 
         ; FIX: Cannot enable durability after disabling it
+        ; TIP: We cannot use a common variable (like 'float disableDurability') because it resets between game loads.
         if (Player.AuxVarGetFlt "*bDisableDurability")
             dbprintc "NewDurability: Disabling durability logic..."
             StopQuest newDurabilityLogic

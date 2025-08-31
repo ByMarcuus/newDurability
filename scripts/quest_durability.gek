@@ -4,54 +4,62 @@ ref armor
 ref weapon
 ref lastWeapon
 
-float durability
 float rating
 float lastRating
 
+float durability
+float divisor
+
 int skill
+int special
+; FIX: Special and skills can change with armors, ingestibles, perks...
+int skillCode
+int armorCode
+int lastSkill
+int lastSpecial
 
-
-; Restart the durability at 'LevelUp Menu', 'cause the special/skills can change.
-Begin MenuMode 1027
-	if (lastWeapon != 0 || lastRating != 0)
-		set lastWeapon to 0
-		set lastRating to 0
-	endif
-End
 
 ; Script that modifies in-game weapon and armor durability.
 Begin GameMode
+	; --- WEAPON ---
 	set weapon to Player.GetEqObj 5
-	set rating to Player.GetArmorRating
 
-	if (weapon == 0)
-		; pass
-	elseif (weapon != lastWeapon)
-		set lastWeapon to weapon
-		set skill to GetWeaponSkill weapon
+	if (weapon)
+		set skillCode to GetWeaponSkill weapon
 
-		if (skill == 38)
-			set durability to Player.GetAV MeleeWeapons
-		elseif (skill == 45)
-			set durability to Player.GetAV Unarmed
-		elseif (skill == 41)
-			set durability to Player.GetAV SmallGuns
-		elseif (skill == 34)
-			set durability to Player.GetAV EnergyWeapons
-		elseif (skill == 33)
-			set durability to Player.GetAV BigGuns
+		if (skillCode == 38)
+			set skill to Player.GetAV MeleeWeapons
+		elseif (skillCode == 45)
+			set skill to Player.GetAV Unarmed
+		elseif (skillCode == 41)
+			set skill to Player.GetAV SmallGuns
+		elseif (skillCode == 34)
+			set skill to Player.GetAV EnergyWeapons
+		elseif (skillCode == 33)
+			set skill to Player.GetAV BigGuns
 		else
-			set skill to 0
+			; If the weapon uses an unhandled skill (like Explosives),
+			; set skill to 100 so the weapon (in case that is not a grenade or mine) takes the least possible damage.
+			set skill to 100
 		endif
 
-		if (skill != 0)
-			set durability to (Player.AuxVarGetFlt "*fWeaponBaseHealth") + (((100 - durability) / 100) * (Player.AuxVarGetFlt "*fWeaponSkillMult"))
+		if (weapon != lastWeapon || skill != lastSkill)
+			set lastWeapon to weapon
+			set lastSkill to skill
+
+			set durability to (Player.AuxVarGetFlt "*fWeaponBaseHealth") + (((100 - skill) / 100) * (Player.AuxVarGetFlt "*fWeaponSkillMult"))
 			dbprintc "Weapon durability: %.5f", durability
-			set durability to durability / GetDamage weapon ; BUG: Float loss precision
+
+			set divisor to GetDamage weapon
+			if (divisor <= 0)
+				set divisor to 1
+			endif
+
+			set durability to durability / divisor ; BUG: Float loss precision
 
 			; FIX: Energy 'Small Gun'-like
 			; Establishes the durability for all types of weapons.
-			; This is done because it seems that some weapons are not attached into the correct 'fDamage*' variable.
+			; This is done because it seems that some weapons are not attached into the correct 'fDamage*' variable (like Plasma Rifle).
 			SetNumericGameSetting "fDamageToWeaponGunMult", durability
 			SetNumericGameSetting "fDamageToWeaponEnergyMult", durability
 			SetNumericGameSetting "fDamageToWeaponMeleeMult", durability
@@ -59,24 +67,39 @@ Begin GameMode
 		endif
 	endif
 
-	if (rating == 0)
-		; pass
-	elseif (rating != lastRating)
-		set lastRating to rating
-		set armor to Player.GetEqObj 2 ; Upper Body Piece
-		set skill to GetWeight armor
+	; --- ARMOR ---
+	set armor to Player.GetEqObj 2 ; Upper Body Piece
+	set rating to Player.GetArmorRating
 
-		if (IsPA armor || skill >= 25)
-			set durability to Player.GetAV Strength
-		elseif (skill >= 15)
-			set durability to Player.GetAV Endurance
+	if (armor)
+		set armorCode to GetWeight armor
+
+		if (IsPA armor || armorCode >= 25)
+			set special to Player.GetAV Strength
+		elseif (armorCode >= 15)
+			set special to Player.GetAV Endurance
 		else
-			set durability to Player.GetAV Agility
+			set special to Player.GetAV Agility
+		endif
+	else
+		; In order to make armor durability more simple, when no upper body piece is equipped,
+		; set special to 10 (max) so the armor takes the least possible damage.
+		set special to 10
+	endif
+
+	if (rating != lastRating || special != lastSpecial)
+		set lastRating to rating
+		set lastSpecial to special
+
+		set durability to (Player.AuxVarGetFlt "*fArmorBaseHealth") + (((10 - special) / 10) * (Player.AuxVarGetFlt "*fArmorSkillMult"))
+		dbprintc "Armor durability: %.5f", durability
+
+		set divisor to rating
+		if (divisor <= 0)
+			set divisor to 1
 		endif
 
-		set durability to (Player.AuxVarGetFlt "*fArmorBaseHealth") + (((10 - durability) / 10) * (Player.AuxVarGetFlt "*fArmorSkillMult"))
-		dbprintc "Armor durability: %.5f", durability
-		set durability to durability / lastRating ; BUG: Float loss precision
+		set durability to durability / divisor ; BUG: Float loss precision
 		SetNumericGameSetting "fDamageToArmorPercentage", durability
 	endif
 End
