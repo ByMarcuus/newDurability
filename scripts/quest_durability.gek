@@ -21,6 +21,11 @@ int lastSpecial
 
 ; Script that modifies in-game weapon and armor durability.
 Begin GameMode
+	; This script can be running event after disabling the quest.
+	if (Player.AuxVarGetFlt "*bDisableDurability")
+		return
+	endif
+
 	; --- WEAPON ---
 	set weapon to Player.GetEqObj 5
 
