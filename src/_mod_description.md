@@ -55,8 +55,8 @@ Weapons degrade based on the formula:
 Problems with this system:
 
     • Stronger weapons degrade faster (example of two weapons with the same health points):
-        - Chinese Pistol: lasts ~1,250 shots.
-        - 10mm Pistol: lasts only ~556 shots.
+        - Chinese Pistol: lasts 1250 shots.
+        - 10mm Pistol: lasts only 556 shots.
     • Lacks RPG depth and customization.
 
 Note that 'fDamageToWeapon*Mult' refers to a set of GameSettings, where * can be replaced with 'Gun', 'Energy', 'Melee' and 'Launcher'.
@@ -71,10 +71,18 @@ Vanilla armor degradation is largely unknown, but based on observation:
 This lack of knowledge may result in inconsistent behavior.
 
 
+# Tips
+
+If you want weapon durability similar to New Vegas, add the following values to the INI (`config/newDurability.ini`):
+
+    - `fWeaponBaseHealth=0.2`
+    - `fWeaponSkillMult=0.0`
+
+
 # Compatibility
 
 This mod should be compatible with all other mods.
-However, any modifications to durability from other mods will be likely overridden by this mod.
+However, any modifications to durability from other mods will likely be overridden by this mod.
 
 
 # Important Notes
@@ -97,3 +105,12 @@ This mod is currently in its basic form, but future updates may include:
 # Source Code
 
 GitHub Repository: https://github.com/ByMarcuus/newDurability
+
+
+# Credits
+
+> Bethesda — for creating the game.
+> couldbeworse5675 — for reviewing the scripts and reporting bugs.
+> IntoTheRough, Stentorious, and couldbeworse5675 — for helping on the xNVSE server.
+> GECK Wiki — reference for scripting functions: https://geckwiki.com/index.php?title=Complete_List_of_Functions_in_Fallout_3
+> Users who created a post on this mod — Jake1702, Yao2988, josh605, DoritofaceTrip, painlessstone6, Masterlix1982.
