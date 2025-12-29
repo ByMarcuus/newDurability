@@ -4,11 +4,9 @@ ref armor
 ref weapon
 ref lastWeapon
 
-int doOnce
 float durability
 float divisor
 
-float maxDR
 float baseDR
 float totalDR
 float lastTotalDR
@@ -28,11 +26,6 @@ Begin GameMode
 	; This script can be running even after disabling the quest.
 	if (Player.AuxVarGetFlt "*bDisableDurability")
 		return
-	endif
-
-	if (doOnce != 1)
-		set maxDR to GetNumericGameSetting fMaxArmorRating
-		set doOnce to 1
 	endif
 
 	; --- WEAPON ---
@@ -85,12 +78,6 @@ Begin GameMode
 	set armor to Player.GetEqObj 2 ; Upper Body Piece
 	set totalDR to Player.GetAV DamageResist
 
-	if (totalDR > maxDR)
-		set totalDR to maxDR
-	elseif (totalDR < 0)
-		set totalDR to 0
-	endif
-
 	; Specials can change with chems and perks, so we need to check them every time.
 	; TODO: Search a better way to determine which special to use for armor durability.
 	if (armor)
@@ -107,30 +94,29 @@ Begin GameMode
 		set special to Player.GetAV Agility
 	endif
 
+	; Check total DR
+	if (totalDR > Player.AuxVarGetFlt "*fMaxArmorRating")
+		set totalDR to Player.AuxVarGetFlt "*fMaxArmorRating"
+	elseif (totalDR < 0)
+		set totalDR to 0
+	endif
+
 	if (totalDR != lastTotalDR || special != lastSpecial)
 		set lastTotalDR to totalDR
 		set lastSpecial to special
 
 		set durability to (Player.AuxVarGetFlt "*fArmorBaseHealth") + (((10 - special) / 10) * (Player.AuxVarGetFlt "*fArmorSkillMult"))
-		dbprintc "Armor durability: %.5f", durability
+		set baseDR to (durability * 50) ; Transform health to DR (approximation)
 
-		set divisor to totalDR
-		if (divisor <= 0)
-			set divisor to 1
+		if (baseDR > Player.AuxVarGetFlt "*fMaxArmorRating")
+			set baseDR to Player.AuxVarGetFlt "*fMaxArmorRating"
 		endif
-		set durability to durability / divisor ; BUG: Float loss precision
+		dbprintc "Armor durability: %.5f", baseDR
 
-		; FIX: Damage To Armor Percentage: Make degradation scale with base DR (armor), not total DR (armor + chems + modifiers).
-		; Author: DannyWithThaPhanny
-		set baseDR to Player.GetBaseAV DamageResist
+		; FIX: Make that armor durability affects damage resistance properly.
+		; Thanks to @DannyWithThaPhanny for 'Damage To Armor Fix' mod that provided the formula.
+		set durability to ((baseDR * 0.01) / (totalDR * 0.01 + 0.0001)) * fDamageToArmorDefault
 
-		if (baseDR > maxDR)
-			set baseDR to maxDR
-		elseif (baseDR < 0)
-			set baseDR to 0
-		endif
-
-		set durability to ((baseDR * 0.01) / (totalDR * 0.01 + 0.0001)) * durability
 		SetNumericGameSetting "fDamageToArmorPercentage", durability
 	endif
 End

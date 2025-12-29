@@ -21,6 +21,9 @@ Begin MenuMode 1004
                 DBMode 0, (GetModIndex "NewDurability.esp")
             endif
 
+            set getter to GetNumericGameSetting fMaxArmorRating
+            Player.AuxVarSetFlt "*fMaxArmorRating", getter
+
             if (GetINIFloat "EXTRAS:bDisableDurability")
                 dbprintc "NewDurability: Disabling durability..."
                 ; FIX: Change "globals" to Temporary-Private "Auxiliary Vars"
@@ -34,29 +37,27 @@ Begin MenuMode 1004
                 dbprintc "NewDurability: Enabling durability..."
                 set getter to (GetINIFloat "WEAPONS:fWeaponBaseHealth", "newDurability.ini")
                 if (getter >= 0)
-                    if (getter <= 3)
-                        Player.AuxVarSetFlt "*fWeaponBaseHealth", getter
-                        dbprintc "NewDurability: Set fWeaponBaseHealth (%.2f)", getter
-                    endif
+                    Player.AuxVarSetFlt "*fWeaponBaseHealth", getter
+                    dbprintc "NewDurability: Set fWeaponBaseHealth (%.2f)", getter
                 endif
 
                 set getter to (GetINIFloat "ARMORS:fArmorBaseHealth", "newDurability.ini")
                 if (getter >= 0)
-                    Player.AuxVarSetFlt "*fArmorBaseHealth", getter
-                    dbprintc "NewDurability: Set fArmorBaseHealth (%.2f)", getter
+                    if (getter <= 2)
+                        Player.AuxVarSetFlt "*fArmorBaseHealth", getter
+                        dbprintc "NewDurability: Set fArmorBaseHealth (%.2f)", getter
+                    endif
                 endif
 
                 set getter to (GetINIFloat "WEAPONS:fWeaponSkillMult", "newDurability.ini")
                 if (getter >= 0)
-                    if (getter <= 3)
-                        Player.AuxVarSetFlt "*fWeaponSkillMult", getter
-                        dbprintc "NewDurability: Set fWeaponSkillMult (%.2f)", getter
-                    endif
+                    Player.AuxVarSetFlt "*fWeaponSkillMult", getter
+                    dbprintc "NewDurability: Set fWeaponSkillMult (%.2f)", getter
                 endif
 
                 set getter to (GetINIFloat "ARMORS:fArmorSkillMult", "newDurability.ini")
                 if (getter >= 0)
-                    if (getter <= 3)
+                    if (getter <= 2)
                         Player.AuxVarSetFlt "*fArmorSkillMult", getter
                         dbprintc "NewDurability: Set fArmorSkillMult (%.2f)", getter
                     endif
