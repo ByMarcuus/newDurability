@@ -1,0 +1,29 @@
+scn newDurabilitySetWeapon
+
+float durability
+short skillType
+
+Begin Function { ref weapon }
+    let skillType := GetWeaponSkill weapon
+
+    if eval (skillType == 41)
+        let durability := Player.GetActorValue Guns ; TODO: Perhaps it works with numbers instead of strings?
+    elseif eval (skillType == 33)
+        let durability := Player.GetActorValue BigGuns
+    elseif eval (skillType == 34)
+        let durability := Player.GetActorValue EnergyWeapons
+    elseif eval (skillType == 35)
+        let durability := Player.GetActorValue Explosives ; TODO: Get caution here
+    elseif eval (skillType == 38)
+        let durability := Player.GetActorValue MeleeWeapons
+    elseif eval (skillType == 45)
+        let durability := Player.GetActorValue Unarmed
+    endif
+
+    short base := (Player.AuxVarGetFlt "*fWeaponBaseHealth")
+    short skill := (Player.AuxVarGetFlt "*fWeaponSkillMult")
+    float healthPoints := base + (((100 - durability) / 100) * skill)
+
+    ; TODO: Check if this is stored in the game
+    SetNumericGameSetting "fDamageToWeaponValue", healthPoints
+End

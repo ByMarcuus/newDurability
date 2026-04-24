@@ -1,0 +1,3 @@
+if eval (GetModIndex "NewDurability.esp" != 255)
+    Call newDurabilityOnLoad
+endif

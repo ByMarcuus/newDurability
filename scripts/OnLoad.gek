@@ -1,0 +1,52 @@
+scn newDurabilityOnLoad
+
+Begin Function {  }
+    if eval (GetGameRestarted)
+        if eval (!FileExists "config/newDurability.ini")
+            print "NewDurability: config/newDurability.ini not found. Using default values..."
+        endif
+
+        if eval (GetINIFloat_Cached "EXTRAS:bDisableDurability" "newDurability.ini" 0)
+            Print "NewDurability: Disabling durability..."
+            Player.AuxVarSetFlt "*bDisableDurability" 1
+
+            SetNumericGameSetting "fDamageToWeaponValue" 0
+        else
+            Print "NewDurability: Enabling durability..."
+            Player.AuxVarSetFlt "*bDisableDurability" 0
+
+            Player.AuxVarSetFlt "*fWeaponBaseHealth" (Clamp (GetINIFloat_Cached "WEAPONS:fWeaponBaseHealth" "newDurability.ini" 0.2) 0 3)
+            Player.AuxVarSetFlt "*fWeaponSkillMult" (Clamp (GetINIFloat_Cached "WEAPONS:fWeaponSkillMult" "newDurability.ini" 0.5) 0 3)
+
+            Player.AuxVarSetFlt "*fArmorBaseHealth" (Clamp (GetINIFloat_Cached "WEAPONS:fArmorBaseHealth" "newDurability.ini" 0.2) 0 3)
+            Player.AuxVarSetFlt "*fArmorSkillMult" (Clamp (GetINIFloat_Cached "WEAPONS:fArmorSkillMult" "newDurability.ini" 0.5) 0 3)
+        endif
+
+        ; We always disable the durability to armor, because it will be handled by our scripts.
+        ; TODO:
+        SetNumericGameSetting "fDamageToArmorPercentage" 0
+    endif
+
+    ; TODO: Ensure if this needs to be done on every load, or doing it per session is enough.
+    array_var weapons := GetLoadedTypeArray 40
+    int index := Ar_Size weapons
+    while (index -= 1) >= 0
+        ref weapon := weapons[index]
+
+        int overrideFlag := GetBit (GetWeaponFlags2 weapon) 7 ; 'Override DamageToWeaponMult' flag
+        int nonplayableFlag := GetBit (GetWeaponFlags1 weapon) 7 ; 'Non-Playable' flag
+        if eval (overrideFlag && !nonplayableFlag && !(IsQuestItem weapon))
+            SetWeaponFlags2 weapon (overrideFlag - 128)
+        endif
+    loop
+    Ar_Erase weapons
+
+    ; TODO: Ensure that this events are only filled once
+    if eval !(Player.AuxVarGetFlt "*bDisableDurability")
+        SetEventHandlerAlt "OnActorEquip" newDurabilityOnEquip 1::Player
+    endif
+endif
+
+; TODO: OnHit event -> When hit by a weapon or something just remove the health points to the armor.
+; TODO: SetOnActorValueChangeEventHandler event -> Replace the 'OnLevelUp'.
+; TODO: Fix a bug where chems affect the weapon/armor durability. Perhaps is a good idea to just add a new option on the INI, because it can have sense.
