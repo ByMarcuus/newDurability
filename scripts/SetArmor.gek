@@ -1,10 +1,9 @@
 scn newDurabilitySetArmor
 
-float baseHealth
-float skillMult
 float durability
 short armorClass
 
+; TODO: REMOVE.
 Begin Function { }
     let armorClass := Player.GetArmorClass
 
@@ -14,14 +13,11 @@ Begin Function { }
         let durability := Player.GetActorValue Endurance
     elseif eval (armorClass == 3)
         let durability := Player.GetActorValue Strength
-    else
-        return
     endif
 
-    let baseHealth := Clamp (GetINIFloat_Cached "ARMORS:fArmorBaseHealth", "NewDurability.ini"), 0, 3
-    let skillMult := Clamp (GetINIFloat_Cached "ARMORS:fArmorSkillMult", "NewDurability.ini"), 0, 3
+    int baseHealth := Player.AuxVarGetFlt "*fArmorBaseHealth"
+    int skillMult := Player.AuxVarGetFlt "*fArmorSkillMult"
 
     let durability := baseHealth + (((10 - durability) / 10) * skillMult)
     SetNumericGameSetting "fDamageToArmorPercentage", durability ; TODO: Check if this is correct
-    PrintD "Armor Durability: " + $durability
 End

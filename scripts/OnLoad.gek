@@ -1,0 +1,53 @@
+scn newDurabilityOnLoad
+
+Begin Function {  }
+    if eval (GetGameRestarted)
+        if eval (!FileExists "config/newDurability.ini")
+            print "NewDurability: config/newDurability.ini not found!" ; TODO: Show a message box instead
+        else
+            if eval (GetINIFloat "EXTRAS:bDisableDurability" "newDurability.ini")
+                Print "NewDurability: Disabling durability..."
+                Player.AuxVarSetFlt "*bDisableDurability" 1
+
+                SetNumericGameSetting "fDamageToArmorPercentage" 0
+                SetNumericGameSetting "fDamageToWeaponValue" 0
+            else
+                Print "NewDurability: Enabling durability..."
+                Player.AuxVarSetFlt "*bDisableDurability" 0
+
+                Player.AuxVarSetFlt "*fWeaponBaseHealth" (Clamp (GetINIFloat "WEAPONS:fWeaponBaseHealth" "newDurability.ini") 0 3)
+                Player.AuxVarSetFlt "*fWeaponSkillMult" (Clamp (GetINIFloat "WEAPONS:fWeaponSkillMult" "newDurability.ini") 0 3)
+
+                Player.AuxVarSetFlt "*fArmorBaseHealth" (Clamp (GetINIFloat "WEAPONS:fArmorBaseHealth" "newDurability.ini") 0 3)
+                Player.AuxVarSetFlt "*fArmorSkillMult" (Clamp (GetINIFloat "WEAPONS:fArmorSkillMult" "newDurability.ini") 0 3)
+            endif
+        endif
+    endif
+
+    array_var weapons := GetLoadedTypeArray 40
+    int index := Ar_Size weapons
+    while (index -= 1) >= 0
+        ref weapon := weapons[index]
+
+        int playableFlag := GetWeaponFlags1 weapon
+        int overrideFlag := GetWeaponFlags2 weapon ; 'Override DamageToWeaponMult' flag
+        if eval (GetBit overrideFlag 7 && !(IsQuestItem weapon) && !(GetBit playableFlag 7))
+            SetWeaponFlags2 weapon (overrideFlag - 128)
+        endif
+    loop
+    Ar_Erase weapons
+
+    ; FIX: Cannot enable durability after disabling it
+    if (Player.AuxVarGetFlt "*bDisableDurability")
+        ; TODO: Remove event handlers
+    else
+        SetEventHandlerAlt "OnActorEquip" newDurabilityOnEquip 1::Player ; TODO: Check if it's recreated every time
+        ; SetOnMenuCloseEventHandler newDurabilityAfterLevelUp 0 1027
+        SetOnMenuCloseEventHandler newDurabilityAfterLevelUp 1 1027
+    endif
+endif
+
+; TODO: ALWAYS disable armor durability. It will be handled by our scripts.
+; TODO: OnHit event -> When hit by a weapon or something just remove the health points to the armor.
+; TODO: SetOnActorValueChangeEventHandler event -> Replace the 'OnLevelUp'.
+; TODO: Fix a bug where chems affect the weapon/armor durability. Perhaps is a good idea to just add a new option on the INI, because it can have sense.

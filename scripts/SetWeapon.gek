@@ -18,11 +18,8 @@ Begin Function { ref weapon }
         let durability := Player.GetActorValue MeleeWeapons
     elseif eval (skill == 45)
         let durability := Player.GetActorValue Unarmed
-    else
-        return
     endif
 
     let durability := (Player.AuxVarGetFlt "*fWeaponBaseHealth") + (((100 - durability) / 100) * (Player.AuxVarGetFlt "*fWeaponSkillMult"))
     SetNumericGameSetting "fDamageToWeaponValue", durability ; TODO: Check if this is stored in the game
-    PrintD "Weapon Durability: " + $durability
 End
